@@ -1,0 +1,18 @@
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    password: admin
+    username: admin
+    url: jdbc:postgresql://localhost:5432/bookstore
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+grpc:
+  server:
+    port: 9090
