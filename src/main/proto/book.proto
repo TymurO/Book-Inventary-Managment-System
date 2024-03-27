@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package com.tovch.grpc;
+
+option java_multiple_files = true;
+option java_package = "com.tovch.grpc";
+
+message Book {
+  optional int64 id = 1;
+  string title = 2;
+  string author = 3;
+  string isbn = 4;
+  int32 quantity = 5;
+}
+
+message BookRequest {
+  optional int64 id = 1;
+  optional Book book = 2;
+}
+
+message BookResponse {
+  string message = 1;
+  optional Book book = 2;
+}
+
+service BookService {
+  rpc list(BookRequest) returns(stream BookResponse){}
+  rpc add(BookRequest) returns(BookResponse){}
+  rpc update(BookRequest) returns(BookResponse){}
+  rpc delete(BookRequest) returns(BookResponse){}
+  rpc print(Book) returns(Book){}
+}
