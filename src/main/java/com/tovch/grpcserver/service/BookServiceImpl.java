@@ -7,11 +7,13 @@ import com.tovch.grpc.BookServiceGrpc;
 import com.tovch.grpcserver.mapper.BookMapperImpl;
 import com.tovch.grpcserver.model.BookModel;
 import com.tovch.grpcserver.repository.BookRepository;
+import com.tovch.grpcserver.util.IsbnValidator;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.persistence.EntityNotFoundException;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 
@@ -75,13 +77,24 @@ public class BookServiceImpl extends BookServiceGrpc.BookServiceImplBase {
             responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Can't save book, send some data").asException());
         }
         else {
-            BookModel bookModel = bookRepository.save(bookMapper.grpcBookToBook(request.getBook()));
-            BookResponse bookResponse = BookResponse.newBuilder()
-                    .setMessage("Book was saved")
-                    .setBook(bookMapper.bookToGrpcBook(bookModel))
-                    .build();
-            responseObserver.onNext(bookResponse);
-            responseObserver.onCompleted();
+            BookModel book = bookMapper.grpcBookToBook(request.getBook());
+            if (!IsbnValidator.isValidIsbn10(book.getIsbn()) && !IsbnValidator.isValidIsbn13(book.getIsbn())) {
+                responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Isbn is invalid").asException());
+            }
+            else {
+                try {
+                    BookModel bookModel = bookRepository.save(bookMapper.grpcBookToBook(request.getBook()));
+                    BookResponse bookResponse = BookResponse.newBuilder()
+                            .setMessage("Book was saved")
+                            .setBook(bookMapper.bookToGrpcBook(bookModel))
+                            .build();
+                    responseObserver.onNext(bookResponse);
+                    responseObserver.onCompleted();
+                }
+                catch (DataIntegrityViolationException exception) {
+                    responseObserver.onError(Status.INVALID_ARGUMENT.withDescription("Book with isbn:" + request.getBook().getIsbn() + " already exists").asException());
+                }
+            }
         }
     }
 

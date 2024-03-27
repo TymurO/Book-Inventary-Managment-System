@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.validation.annotation.Validated;
 
 @Entity
 @Table(name = "book")
@@ -23,6 +25,7 @@ public class BookModel {
 
     private String author;
 
+    @Column(unique = true)
     private String isbn;
 
     private Integer quantity;
